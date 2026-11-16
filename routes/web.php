@@ -22,15 +22,14 @@ $router->get('/', function () use ($router) {
 
 
 // Rute Publik (Bisa diakses siapa saja tanpa login)
-$router->group([], function () use ($router) {
-    // Routes for Pelanggan
-    $router->get('pelanggan', 'PelangganController@getPelanggan');
-    $router->get('pelanggan/{id}', 'PelangganController@getPelangganById');
 
-    // Routes for Pesanan Laundry
-    $router->get('pesanan-laundry', 'PesananLaundryController@getPesananLaundry');
-    $router->get('pesanan-laundry/{id}', 'PesananLaundryController@getPesananLaundryById');
-});
+// Routes for Pelanggan
+$router->get('/pelanggan', 'PelangganController@getPelanggan');
+$router->get('/pelanggan/{id}', 'PelangganController@getPelanggan');
+    
+// Routes for Pesanan Laundry
+$router->get('/pesanan-laundry', 'PesananLaundryController@getPesananLaundry');
+$router->get('/pesanan-laundry/{id}', 'PesananLaundryController@getPesananLaundry');
 
 
 
