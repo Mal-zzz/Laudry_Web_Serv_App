@@ -96,9 +96,7 @@ class PesananLaundryController extends Controller
 
     private function checkAccept(Request $request)
     {
-        $accept = $request->header('Accept', '*/*');
-
-        if (!str_contains($accept, 'application/json') && !str_contains($accept, '*/*')) {
+        if (!str_contains($request->header('Accept', ''), 'application/json')) {
             return $this->respond(['message' => 'Header Accept harus application/json'], 406);
         }
 
