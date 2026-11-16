@@ -117,7 +117,7 @@ class PesananLaundryController extends Controller
 
         // 3. Validasi input sesuai field PesananLaundry
         $validationRules = [
-            'pelanggan_id'    => 'required|exists:pelanggans,id',
+            'pelanggan_id'    => 'required|exists:pelanggan,id',
             'jenis_layanan'   => 'required',
             'berat_kg'        => 'required|numeric',
             'total_harga'     => 'required|numeric',
@@ -192,7 +192,7 @@ class PesananLaundryController extends Controller
 
         // 4. Validasi input
         $validationRules = [
-            'pelanggan_id'    => 'required|exists:pelanggans,id',
+            'pelanggan_id'    => 'required|exists:pelanggan,id',
             'jenis_layanan'   => 'required',
             'berat_kg'        => 'required|numeric',
             'total_harga'     => 'required|numeric',
