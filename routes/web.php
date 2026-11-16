@@ -36,15 +36,17 @@ $router->get('/pesanan-laundry/{id}', 'PesananLaundryController@getPesananLaundr
 
 // Rute Terproteksi (Wajib Basic Auth menggunakan email & password pelanggan)
 $router->group(['middleware' => 'pelanggan.auth'], function () use ($router) {
-    $router->post('/pelanggan', 'PelangganController@store');
-    $router->put('/pelanggan/{id}', 'PelangganController@update');
-    $router->delete('/pelanggan/{id}', 'PelangganController@destroy');
+    $router->post('/pelanggan', 'PelangganController@storePelanggan');
+    $router->put('/pelanggan/{id}', 'PelangganController@updatePelanggan');
+    $router->delete('/pelanggan/{id}', 'PelangganController@destroyPelanggan');
+
+    // pesanan laundry routes
+    $router->post('/pesanan-laundry', 'PesananLaundryController@storePesananLaundry');
 });
 
 
-$router->group(['middleware' => 'admin.hardcore'], function () use ($router) {
+$router->group(['middleware' => 'admin.hardcode'], function () use ($router) {
     // pesanan laundry routes
-    $router->post('pesanan-laundry', 'PesananLaundryController@storePesananLaundry');
-    $router->put('pesanan-laundry/{id}', 'PesananLaundryController@updatePesananLaundry');
-    $router->delete('pesanan-laundry/{id}', 'PesananLaundryController@destroyPesananLaundry');
+    $router->put('/pesanan-laundry/{id}', 'PesananLaundryController@updatePesananLaundry');
+    $router->delete('/pesanan-laundry/{id}', 'PesananLaundryController@destroyPesananLaundry');
 });

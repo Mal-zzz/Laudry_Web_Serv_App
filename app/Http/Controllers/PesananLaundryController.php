@@ -117,7 +117,6 @@ class PesananLaundryController extends Controller
 
         // 3. Validasi input sesuai field PesananLaundry
         $validationRules = [
-            'pelanggan_id'    => 'required|exists:pelanggan,id',
             'jenis_layanan'   => 'required',
             'berat_kg'        => 'required|numeric',
             'total_harga'     => 'required|numeric',
@@ -140,6 +139,10 @@ class PesananLaundryController extends Controller
             }
             return response($xmlError->asXml(), 400)->header('Content-Type', 'application/xml');
         }
+
+        // Ambil otomatis ID pelanggan yang sedang login dari middleware PelangganBasicAuth
+        $authUser = $request->attributes->get('auth_user');
+        $input['pelanggan_id'] = $authUser->id;
 
         // 4. Simpan ke database
         $pesanan = PesananLaundry::create($input);

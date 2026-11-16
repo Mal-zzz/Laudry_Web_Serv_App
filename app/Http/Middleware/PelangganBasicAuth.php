@@ -33,6 +33,8 @@ class PelangganBasicAuth
             ], 401, ['WWW-Authenticate' => 'Basic']);
         }
 
+        $request->attributes->set('auth_user', $pelanggan);
+
         // 5. Jika valid, izinkan request lanjut ke Controller
         return $next($request);
     }
