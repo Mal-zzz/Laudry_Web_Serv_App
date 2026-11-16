@@ -18,6 +18,7 @@ class PesananLaundrySeeder extends Seeder
             'tanggal_selesai' => '2026-11-11 08:00:00'
         ]);
 
+        
         PesananLaundry::create([
             'pelanggan_id' => 1,
             'jenis_layanan' => 'Cuci Setrika',
