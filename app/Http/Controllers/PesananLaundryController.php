@@ -23,8 +23,8 @@ class PesananLaundryController extends Controller
         $xml->status_pesanan  = $pesanan->status_pesanan;
         $xml->tanggal_masuk   = $pesanan->tanggal_masuk;
         $xml->tanggal_selesai = $pesanan->tanggal_selesai ?? '';
-        $xml->created_at      = (string) $pesanan->created_at;
-        $xml->updated_at      = (string) ($pesanan->updated_at ?? '');
+        $xml->created_at = $pesanan->created_at ? $pesanan->created_at->format('d-m-Y H:i:s') : '';
+        $xml->updated_at = $pesanan->updated_at ? $pesanan->updated_at->format('d-m-Y H:i:s') : '';
     }
 
 

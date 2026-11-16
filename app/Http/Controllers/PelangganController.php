@@ -26,8 +26,8 @@ class PelangganController extends Controller
         $xml->pekerjaan      = $pelanggan->pekerjaan;
         $xml->tanggal_daftar = $pelanggan->tanggal_daftar;
         $xml->status         = $pelanggan->status;
-        $xml->created_at     = (string) $pelanggan->created_at;
-        $xml->updated_at     = (string) ($pelanggan->updated_at ?? '');
+        $xml->created_at = $pelanggan->created_at ? $pelanggan->created_at->format('d-m-Y H:i:s') : '';
+        $xml->updated_at = $pelanggan->updated_at ? $pelanggan->updated_at->format('d-m-Y H:i:s') : '';
     }
 
 

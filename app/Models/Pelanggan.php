@@ -30,6 +30,8 @@ class Pelanggan extends Model
 
     protected $casts = [
         'password' => 'hashed', // Lumen akan otomatis menghash password saat disimpan
+        'created_at' => 'datetime:d-m-Y H:i:s',
+        'updated_at' => 'datetime:d-m-Y H:i:s',
     ];
 
     public $timestamps = true;
