@@ -80,6 +80,14 @@ $app->configure('app');
 //     'auth' => App\Http\Middleware\Authenticate::class,
 // ]);
 
+$app->routeMiddleware([
+    'pelanggan.auth' => App\Http\Middleware\PelangganBasicAuth::class,
+]);
+
+$app->routeMiddleware([
+    'admin.hardcode' => App\Http\Middleware\AdminHardcodeAuth::class,
+]);
+
 /*
 |--------------------------------------------------------------------------
 | Register Service Providers

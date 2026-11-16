@@ -11,6 +11,20 @@ class PelangganSeeder extends Seeder
     public function run()
     {
         Pelanggan::create([
+            'kode_pelanggan' => 'ADMIN',
+            'nama' => 'Admin',
+            'jenis_kelamin' => 'L',
+            'alamat' => 'Admin',
+            'no_hp' => 'Admin',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('admin123'),
+            'tanggal_lahir' => '2001-03-15',
+            'pekerjaan' => 'Admin',
+            'tanggal_daftar' => '2026-11-02',
+            'status' => 'aktif'
+        ]);
+
+        Pelanggan::create([
             'kode_pelanggan' => 'PLG001',
             'nama' => 'Andi Saputra',
             'jenis_kelamin' => 'L',

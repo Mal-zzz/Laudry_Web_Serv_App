@@ -21,17 +21,30 @@ $router->get('/', function () use ($router) {
 
 
 
+// Rute Publik (Bisa diakses siapa saja tanpa login)
 $router->group([], function () use ($router) {
     // Routes for Pelanggan
     $router->get('pelanggan', 'PelangganController@getPelanggan');
     $router->get('pelanggan/{id}', 'PelangganController@getPelangganById');
-    $router->post('pelanggan', 'PelangganController@storePelanggan');
-    $router->put('pelanggan/{id}', 'PelangganController@updatePelanggan');
-    $router->delete('pelanggan/{id}', 'PelangganController@destroyPelanggan');
 
     // Routes for Pesanan Laundry
     $router->get('pesanan-laundry', 'PesananLaundryController@getPesananLaundry');
     $router->get('pesanan-laundry/{id}', 'PesananLaundryController@getPesananLaundryById');
+});
+
+
+
+
+// Rute Terproteksi (Wajib Basic Auth menggunakan email & password pelanggan)
+$router->group(['middleware' => 'pelanggan.auth'], function () use ($router) {
+    $router->post('/pelanggan', 'PelangganController@store');
+    $router->put('/pelanggan/{id}', 'PelangganController@update');
+    $router->delete('/pelanggan/{id}', 'PelangganController@destroy');
+});
+
+
+$router->group(['middleware' => 'admin.hardcore'], function () use ($router) {
+    // pesanan laundry routes
     $router->post('pesanan-laundry', 'PesananLaundryController@storePesananLaundry');
     $router->put('pesanan-laundry/{id}', 'PesananLaundryController@updatePesananLaundry');
     $router->delete('pesanan-laundry/{id}', 'PesananLaundryController@destroyPesananLaundry');
