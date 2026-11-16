@@ -283,10 +283,30 @@ class PelangganController extends Controller
             return response($xmlNotFound->asXml(), 404)->header('Content-Type', 'application/xml');
         }
 
-        // 3. Eksekusi hapus data
+        // 3. VALIDASI OTORISASI (Hanya pemilik akun sendiri atau Admin yang boleh hapus)
+        $authUser = $request->attributes->get('auth_user');
+        $isAdmin  = ($authUser->kode_pelanggan === 'ADMIN' || $authUser->email === 'admin@gmail.com');
+
+        if (!$isAdmin && $authUser->id != $pelanggan->id) {
+            if ($isJson) {
+                $errorMessage = "Forbidden: Anda hanya dapat menghapus data akun Anda sendiri (ID: {$authUser->id}).";
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $errorMessage
+                ], 403);
+            }
+
+            $xmlForbidden = new \SimpleXMLElement('<error/>');
+            $xmlForbidden->status  = 'error';
+            $xmlForbidden->message = 'Forbidden: Anda tidak berhak menghapus data pelanggan lain.';
+            return response($xmlForbidden->asXml(), 403)->header('Content-Type', 'application/xml');
+        }
+
+        // 4. Eksekusi hapus data
         $pelanggan->delete();
 
-        // 4. Kembalikan response sesuai header Accept
+        // 5. Kembalikan response sesuai header Accept
         if ($isJson) {
             return response()->json([
                 'message'      => 'delete successfully',
