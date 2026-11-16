@@ -23,6 +23,8 @@ class Pelanggan extends Model
         'status'
     ];
 
+    public $timestamps = true;
+
     // Relasi One to Many
     public function pesananLaundry()
     {

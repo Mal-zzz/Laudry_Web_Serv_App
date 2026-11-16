@@ -20,6 +20,8 @@ class PesananLaundry extends Model
         'tanggal_selesai'
     ];
 
+    public $timestamps = true;
+
     // Relasi Many to One
     public function pelanggan()
     {
