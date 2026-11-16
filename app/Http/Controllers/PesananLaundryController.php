@@ -4,111 +4,274 @@ namespace App\Http\Controllers;
 
 use App\Models\PesananLaundry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\AcceptHeader;
+// use Illuminate\Support\Facades\Auth;
 
 class PesananLaundryController extends Controller
 {
-    // GET /api/pesanan-laundry
-    public function index(Request $request)
+    /**
+     * Helper agar tidak duplikasi kode & aman dari karakter khusus (&, <, >)
+     */
+    private function appendPesananLaundryToXml(\SimpleXMLElement $xml, $pesanan)
     {
-        if ($error = $this->checkAccept($request)) {
-            return $error;
-        }
-
-        return $this->respond(PesananLaundry::with('pelanggan')->get());
+        $xml->id              = $pesanan->id;
+        $xml->pelanggan_id    = $pesanan->pelanggan_id;
+        $xml->jenis_layanan   = $pesanan->jenis_layanan;
+        $xml->berat_kg        = $pesanan->berat_kg;
+        $xml->total_harga     = $pesanan->total_harga;
+        $xml->status_pesanan  = $pesanan->status_pesanan;
+        $xml->tanggal_masuk   = $pesanan->tanggal_masuk;
+        $xml->tanggal_selesai = $pesanan->tanggal_selesai ?? '';
+        $xml->created_at      = (string) $pesanan->created_at;
+        $xml->updated_at      = (string) ($pesanan->updated_at ?? '');
     }
 
-    // GET /api/pesanan-laundry/{id}
-    public function show(Request $request, $id)
+
+    /**
+     * MENAMPILKAN DATA (Bisa semua data dengan pagination, atau detail berdasarkan ID)
+     */
+    public function getPesananLaundry(Request $request, $id = null)
     {
-        if ($error = $this->checkAccept($request)) {
-            return $error;
+        $acceptHeader = $request->header('Accept', '');
+
+        $isJson = str_contains($acceptHeader, 'application/json');
+        $isXml  = str_contains($acceptHeader, 'application/xml');
+
+        if (!$isJson && !$isXml) {
+            return response()->json(['message' => 'Not Acceptable!'], 406);
         }
 
-        return $this->respond(PesananLaundry::with('pelanggan')->findOrFail($id));
+        // 1. KONDISI JIKA $id DIISI
+        if ($id != null) {
+            $pesanan = PesananLaundry::find($id);
+
+            if (!$pesanan) {
+                return response()->json(['message' => 'Pesanan laundry not found'], 404);
+            }
+
+            if ($isJson) {
+                return response()->json($pesanan, 200);
+            }
+
+            $xml = new \SimpleXMLElement('<pesanan_laundry/>');
+            $this->appendPesananLaundryToXml($xml, $pesanan);
+
+            return response($xml->asXml(), 200)->header('Content-Type', 'application/xml');
+        }
+
+        // 2. KONDISI JIKA $id KOSONG (Biarkan sebagai objek Paginator, jangan langsung ->toArray())
+        $paginator = PesananLaundry::orderBy("id", "DESC")->paginate(2);
+
+        if ($isJson) {
+            $dataArray = $paginator->toArray();
+            $response = [
+                "total_count" => $dataArray['total'],
+                "limit"       => $dataArray['per_page'],
+                "pagination"  => [
+                    "next_page"    => $dataArray['next_page_url'],
+                    "current_page" => $dataArray['current_page']
+                ],
+                "data"        => $dataArray['data']
+            ];
+
+            return response()->json($response, 200);
+        }
+
+        // Jika format yang diminta adalah XML
+        $xml = new \SimpleXMLElement('<data_pesanan_laundry/>');
+        $xml->addChild('total_count', $paginator->total());
+        $xml->addChild('limit', $paginator->perPage());
+        $xml->addChild('current_page', $paginator->currentPage());
+
+        foreach ($paginator->items() as $item) {
+            $xmlItem = $xml->addChild('pesanan_laundry');
+            $this->appendPesananLaundryToXml($xmlItem, $item);
+        }
+
+        return response($xml->asXml(), 200)->header('Content-Type', 'application/xml');
     }
 
-    // POST /api/pesanan-laundry
-    public function store(Request $request)
+
+    /**
+     * MENAMBAH DATA BARU
+     */
+    public function storePesananLaundry(Request $request)
     {
-        if ($error = $this->checkAccept($request) ?? $this->checkContentType($request)) {
-            return $error;
+        $acceptHeader = $request->header('Accept', '');
+        $isJson = str_contains($acceptHeader, 'application/json');
+        $isXml  = str_contains($acceptHeader, 'application/xml');
+
+        // 1. Validasi header Accept
+        if (!$isJson && !$isXml) {
+            return response()->json(['message' => 'Not Acceptable!'], 406);
         }
 
-        $data = $this->validate($request, [
-            'pelanggan_id'    => 'required|integer|exists:pelanggan,id',
-            'jenis_layanan'   => 'required|string|max:50',
-            'berat_kg'        => 'required|numeric|min:0.01',
-            'total_harga'     => 'required|numeric|min:0',
-            'status_pesanan'  => 'nullable|string|max:30',
+        // 2. Validasi header Content-Type (wajib kirim JSON di body)
+        $contentTypeHeader = $request->header('Content-Type', '');
+        if (!str_contains($contentTypeHeader, 'application/json')) {
+            return response()->json(['message' => 'Unsupported Media Type'], 415);
+        }
+
+        $input = $request->all();
+
+        // 3. Validasi input sesuai field PesananLaundry
+        $validationRules = [
+            'pelanggan_id'    => 'required|exists:pelanggans,id',
+            'jenis_layanan'   => 'required',
+            'berat_kg'        => 'required|numeric',
+            'total_harga'     => 'required|numeric',
+            'status_pesanan'  => 'required',
             'tanggal_masuk'   => 'required|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_masuk',
-        ]);
+            'tanggal_selesai' => 'nullable|date',
+        ];
 
-        $pesanan = PesananLaundry::create($data);
+        $validator = Validator::make($input, $validationRules);
 
-        return $this->respond($pesanan->load('pelanggan'), 201);
-    }
+        if ($validator->fails()) {
+            if ($isJson) {
+                return response()->json($validator->errors(), 400);
+            }
 
-    // PUT /api/pesanan-laundry/{id}
-    public function update(Request $request, $id)
-    {
-        if ($error = $this->checkAccept($request) ?? $this->checkContentType($request)) {
-            return $error;
+            // Response error validasi dalam bentuk XML
+            $xmlError = new \SimpleXMLElement('<errors/>');
+            foreach ($validator->errors()->all() as $err) {
+                $xmlError->addChild('error', htmlspecialchars($err));
+            }
+            return response($xmlError->asXml(), 400)->header('Content-Type', 'application/xml');
         }
 
-        $pesanan = PesananLaundry::findOrFail($id);
+        // 4. Simpan ke database
+        $pesanan = PesananLaundry::create($input);
 
-        $data = $this->validate($request, [
-            'pelanggan_id'    => 'required|integer|exists:pelanggan,id',
-            'jenis_layanan'   => 'required|string|max:50',
-            'berat_kg'        => 'required|numeric|min:0.01',
-            'total_harga'     => 'required|numeric|min:0',
-            'status_pesanan'  => 'nullable|string|max:30',
+        // 5. Kembalikan response sesuai header Accept (status 201 Created)
+        if ($isJson) {
+            return response()->json($pesanan, 201);
+        }
+
+        $xml = new \SimpleXMLElement('<pesanan_laundry/>');
+        $this->appendPesananLaundryToXml($xml, $pesanan);
+
+        return response($xml->asXml(), 201)->header('Content-Type', 'application/xml');
+    }
+
+
+    /**
+     * MENGUBAH DATA BERDASARKAN ID
+     */
+    public function updatePesananLaundry(Request $request, $id)
+    {
+        $acceptHeader = $request->header('Accept', '');
+        $isJson = str_contains($acceptHeader, 'application/json');
+        $isXml  = str_contains($acceptHeader, 'application/xml');
+
+        // 1. Validasi header Accept
+        if (!$isJson && !$isXml) {
+            return response()->json(['message' => 'Not Acceptable!'], 406);
+        }
+
+        // 2. Validasi header Content-Type (body wajib JSON)
+        $contentTypeHeader = $request->header('Content-Type', '');
+        if (!str_contains($contentTypeHeader, 'application/json')) {
+            return response()->json(['message' => 'Unsupported Media Type'], 415);
+        }
+
+        // 3. Cek apakah data pesanan laundry ada
+        $pesanan = PesananLaundry::find($id);
+        if (!$pesanan) {
+            if ($isJson) {
+                return response()->json(['message' => 'Pesanan laundry not found'], 404);
+            }
+
+            $xmlNotFound = new \SimpleXMLElement('<error/>');
+            $xmlNotFound->message = 'Pesanan laundry not found';
+            return response($xmlNotFound->asXml(), 404)->header('Content-Type', 'application/xml');
+        }
+
+        $inputs = $request->all();
+
+        // 4. Validasi input
+        $validationRules = [
+            'pelanggan_id'    => 'required|exists:pelanggans,id',
+            'jenis_layanan'   => 'required',
+            'berat_kg'        => 'required|numeric',
+            'total_harga'     => 'required|numeric',
+            'status_pesanan'  => 'required',
             'tanggal_masuk'   => 'required|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_masuk',
-        ]);
+            'tanggal_selesai' => 'nullable|date',
+        ];
 
-        $pesanan->update($data);
+        $validator = Validator::make($inputs, $validationRules);
 
-        return $this->respond($pesanan->load('pelanggan'));
-    }
+        if ($validator->fails()) {
+            if ($isJson) {
+                return response()->json($validator->errors(), 400);
+            }
 
-    // DELETE /api/pesanan-laundry/{id}
-    public function destroy(Request $request, $id)
-    {
-        if ($error = $this->checkAccept($request)) {
-            return $error;
+            $xmlError = new \SimpleXMLElement('<errors/>');
+            foreach ($validator->errors()->all() as $err) {
+                $xmlError->addChild('error', htmlspecialchars($err));
+            }
+            return response($xmlError->asXml(), 400)->header('Content-Type', 'application/xml');
         }
 
-        PesananLaundry::findOrFail($id)->delete();
+        // 5. Update data ke database
+        $pesanan->fill($inputs);
+        $pesanan->save();
 
-        return $this->respond(['message' => 'Pesanan laundry berhasil dihapus']);
-    }
-
-    /* ---------- Helper ---------- */
-
-    private function respond($data, $status = 200)
-    {
-        return response()->json($data, $status, [
-            'Content-Type' => 'application/json',
-        ]);
-    }
-
-    private function checkAccept(Request $request)
-    {
-        if (!str_contains($request->header('Accept', ''), 'application/json')) {
-            return $this->respond(['message' => 'Header Accept harus application/json'], 406);
+        // 6. Kembalikan response sesuai header Accept
+        if ($isJson) {
+            return response()->json($pesanan, 200);
         }
 
-        return null;
+        $xml = new \SimpleXMLElement('<pesanan_laundry/>');
+        $this->appendPesananLaundryToXml($xml, $pesanan);
+
+        return response($xml->asXml(), 200)->header('Content-Type', 'application/xml');
     }
 
-    private function checkContentType(Request $request)
+
+    /**
+     * MENGHAPUS DATA BERDASARKAN ID
+     */
+    public function destroyPesananLaundry(Request $request, $id)
     {
-        if (!$request->isJson()) {
-            return $this->respond(['message' => 'Header Content-Type harus application/json'], 415);
+        $acceptHeader = $request->header('Accept', '');
+        $isJson = str_contains($acceptHeader, 'application/json');
+        $isXml  = str_contains($acceptHeader, 'application/xml');
+
+        // 1. Validasi header Accept
+        if (!$isJson && !$isXml) {
+            return response()->json(['message' => 'Not Acceptable!'], 406);
         }
 
-        return null;
+        // 2. Cek apakah data pesanan laundry tersedia
+        $pesanan = PesananLaundry::find($id);
+        if (!$pesanan) {
+            if ($isJson) {
+                return response()->json(['message' => 'Pesanan laundry not found'], 404);
+            }
+
+            $xmlNotFound = new \SimpleXMLElement('<error/>');
+            $xmlNotFound->message = 'Pesanan laundry not found';
+            return response($xmlNotFound->asXml(), 404)->header('Content-Type', 'application/xml');
+        }
+
+        // 3. Eksekusi hapus data
+        $pesanan->delete();
+
+        // 4. Kembalikan response sesuai header Accept
+        if ($isJson) {
+            return response()->json([
+                'message'            => 'delete successfully',
+                'pesanan_laundry_id' => $id
+            ], 200);
+        }
+
+        $xml = new \SimpleXMLElement('<response/>');
+        $xml->message            = 'delete successfully';
+        $xml->pesanan_laundry_id = $id;
+
+        return response($xml->asXml(), 200)->header('Content-Type', 'application/xml');
     }
 }

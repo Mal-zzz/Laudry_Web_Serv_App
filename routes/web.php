@@ -23,14 +23,14 @@ $router->get('/', function () use ($router) {
 
 $router->group([], function () use ($router) {
     // Routes for Pelanggan
-    $router->get('pelanggan', 'PelangganController@index');
-    $router->get('pelanggan/{id}', 'PelangganController@show');
-    $router->post('pelanggan', 'PelangganController@store');
-    $router->put('pelanggan/{id}', 'PelangganController@update');
-    $router->delete('pelanggan/{id}', 'PelangganController@destroy');
+    $router->get('pelanggan', 'PelangganController@getPelanggan');
+    $router->get('pelanggan/{id}', 'PelangganController@getPelangganById');
+    $router->post('pelanggan', 'PelangganController@storePelanggan');
+    $router->put('pelanggan/{id}', 'PelangganController@updatePelanggan');
+    $router->delete('pelanggan/{id}', 'PelangganController@destroyPelanggan');
 
     // Routes for Pesanan Laundry
-    $router->get('pesanan-laundry', 'PesananLaundryController@index');
+    $router->get('pesanan-laundry', 'PesananLaundryController@get');
     $router->get('pesanan-laundry/{id}', 'PesananLaundryController@show');
     $router->post('pesanan-laundry', 'PesananLaundryController@store');
     $router->put('pesanan-laundry/{id}', 'PesananLaundryController@update');
