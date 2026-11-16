@@ -30,9 +30,9 @@ $router->group([], function () use ($router) {
     $router->delete('pelanggan/{id}', 'PelangganController@destroyPelanggan');
 
     // Routes for Pesanan Laundry
-    $router->get('pesanan-laundry', 'PesananLaundryController@get');
-    $router->get('pesanan-laundry/{id}', 'PesananLaundryController@show');
-    $router->post('pesanan-laundry', 'PesananLaundryController@store');
-    $router->put('pesanan-laundry/{id}', 'PesananLaundryController@update');
-    $router->delete('pesanan-laundry/{id}', 'PesananLaundryController@destroy');
+    $router->get('pesanan-laundry', 'PesananLaundryController@getPesananLaundry');
+    $router->get('pesanan-laundry/{id}', 'PesananLaundryController@getPesananLaundryById');
+    $router->post('pesanan-laundry', 'PesananLaundryController@storePesananLaundry');
+    $router->put('pesanan-laundry/{id}', 'PesananLaundryController@updatePesananLaundry');
+    $router->delete('pesanan-laundry/{id}', 'PesananLaundryController@destroyPesananLaundry');
 });
