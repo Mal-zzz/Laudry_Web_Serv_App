@@ -124,12 +124,13 @@ class PelangganController extends Controller
 
         // 3. Validasi input sesuai field Pelanggan
         $validationRules = [
-            'kode_pelanggan' => 'required|unique:pelanggans,kode_pelanggan',
+            'kode_pelanggan' => 'required|unique:pelanggan,kode_pelanggan',
             'nama'           => 'required|min:3',
             'jenis_kelamin'  => 'required|in:L,P',
             'alamat'         => 'required',
             'no_hp'          => 'required',
-            'email'          => 'required|email|unique:pelanggans,email',
+            'email'          => 'required|email|unique:pelanggan,email',
+            'password' => 'required|string|min:6',
             'tanggal_lahir'  => 'required|date',
             'pekerjaan'      => 'required',
             'tanggal_daftar' => 'required|date',
@@ -207,12 +208,13 @@ class PelangganController extends Controller
 
         // 4. Validasi input (kecualikan $id saat ini pada aturan unique)
         $validationRules = [
-            'kode_pelanggan' => 'required|unique:pelanggans,kode_pelanggan,' . $id,
+            'kode_pelanggan' => 'required|unique:pelanggan,kode_pelanggan,' . $id,
             'nama'           => 'required|min:3',
             'jenis_kelamin'  => 'required|in:L,P',
             'alamat'         => 'required',
             'no_hp'          => 'required',
-            'email'          => 'required|email|unique:pelanggans,email,' . $id,
+            'email'          => 'required|email|unique:pelanggan,email,' . $id,
+            'password'       => 'required|string|min:6',
             'tanggal_lahir'  => 'required|date',
             'pekerjaan'      => 'required',
             'tanggal_daftar' => 'required|date',

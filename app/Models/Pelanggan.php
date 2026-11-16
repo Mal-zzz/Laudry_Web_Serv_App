@@ -17,10 +17,19 @@ class Pelanggan extends Model
         'alamat',
         'no_hp',
         'email',
+        'password',
         'tanggal_lahir',
         'pekerjaan',
         'tanggal_daftar',
         'status'
+    ];
+
+    protected $hidden = [
+        'password', // <--- agar password aman, tidak ditampilkan saat response JSON
+    ];
+
+    protected $casts = [
+        'password' => 'hashed', // Lumen akan otomatis menghash password saat disimpan
     ];
 
     public $timestamps = true;
