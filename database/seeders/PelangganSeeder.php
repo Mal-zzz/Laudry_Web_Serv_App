@@ -1,8 +1,10 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Pelanggan;
+use Illuminate\Support\Facades\Hash;
 
 class PelangganSeeder extends Seeder
 {
@@ -15,6 +17,7 @@ class PelangganSeeder extends Seeder
             'alamat' => 'Bandung',
             'no_hp' => '081234567801',
             'email' => 'andi@gmail.com',
+            'password' => Hash::make('123456'),
             'tanggal_lahir' => '2000-01-10',
             'pekerjaan' => 'Mahasiswa',
             'tanggal_daftar' => '2026-11-01',
@@ -28,6 +31,7 @@ class PelangganSeeder extends Seeder
             'alamat' => 'Cimahi',
             'no_hp' => '081234567802',
             'email' => 'siti@gmail.com',
+            'password' => Hash::make('654321'),
             'tanggal_lahir' => '2001-03-15',
             'pekerjaan' => 'Guru',
             'tanggal_daftar' => '2026-11-02',
